@@ -7,11 +7,19 @@ const fs = require('fs');
 // empty string avoids fs.readFile blowing up
 let filename = process.argv[2] || '';
 
-// fs.readFile takes filename and callback
-fs.readFile(filename, (err, data) => {
-  if (err) {
-    return console.error(err);
-  }
+const readFile = (filename) =>
+  new Promise((resolve, reject) => {
+    // fs.readFile takes filename and callback
+    fs.readFile(filename, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
 
-  console.log(`${filename} is ${data.length} bytes long.`);
-});
+// readFile() returns a promise
+readFile(filename)
+  .then( (data) => console.log(`${filename} is ${data.length} bytes long.`))
+  .catch( console.error );
