@@ -10,6 +10,9 @@ const fileType = require('file-type');
 
 const awsS3Upload = require('../lib/aws-s3-upload.js');
 
+const mongoose = require('../app/middleware/mongoose');
+const Upload = require('../app/models/upload');
+
 const mimeType = (data) =>
   Object.assign({
     ext: 'bin',
@@ -20,6 +23,7 @@ const mimeType = (data) =>
 // get filename from command line or assign it as an empty string
 // empty string avoids fs.readFile blowing up
 let filename = process.argv[2] || '';
+let title = process.argv[3] || 'No Title';
 
 const readFile = (filename) =>
   new Promise((resolve, reject) => {
@@ -41,5 +45,13 @@ readFile(filename)
     return file;
   })
   .then(awsS3Upload)
-  .then((s3response) => console.log(s3response))
-  .catch( console.error );
+  .then((s3response) => {
+    let upload = {
+      location: s3response.Location,
+      title: title,
+    };
+    return Upload.create(upload);
+  })
+  .then(console.log)
+  .catch(console.error)
+  .then(() => mongoose.connection.close());
