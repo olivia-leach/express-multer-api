@@ -10,6 +10,8 @@ const multer = middleware['multer'];
 const awsS3Upload = require('lib/aws-s3-upload.js');
 // this template allows you to access paths from root directory if the paths don't have leading /s
 
+const mime = require('mime-types');
+
 const Upload = models.upload;
 
 const index = (req, res, next) => {
@@ -28,15 +30,18 @@ const create = (req, res, next) => {
   let upload = {
     mime: req.file.mimetype,
     data: req.file.buffer,
+    ext: mime.extension(req.file.mimetype)
   };
-  res.json({upload});
-
-  //   {
-  //   _owner: req.currentUser._id,
-  // });
-  // Upload.create(upload)
-  //   .then(upload => res.json({ upload }))
-  //   .catch(err => next(err));
+  awsS3Upload(upload)
+  .then((s3response) => {
+    let upload = {
+      location: s3response.Location,
+      title: req.body.upload.title,
+    };
+    return Upload.create(upload);
+  }).then(
+    (upload) => { res.status(201).json({ upload });
+  }).catch(err => next(err));
 };
 
 const update = (req, res, next) => {

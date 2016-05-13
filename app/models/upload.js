@@ -15,9 +15,9 @@ const uploadSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-uploadSchema.virtual('length').get(function length() {
-  return this.text.length;
-});
+// uploadSchema.virtual('length').get(function length() {
+//   return this.text.length;
+// });
 
 const Upload = mongoose.model('Upload', uploadSchema);
 
